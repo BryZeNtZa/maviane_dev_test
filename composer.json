@@ -1,0 +1,19 @@
+{
+    "name": "maviance/maviance",
+    "description": "Maviance test",
+    "type": "project",
+    "require": {
+        "monolog/monolog": "^2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Maviance\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "BryZe NtZa",
+            "email": "ntbryze@gmail.com"
+        }
+    ]
+}
