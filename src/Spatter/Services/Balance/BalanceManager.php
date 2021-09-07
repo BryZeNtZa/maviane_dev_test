@@ -70,7 +70,7 @@ class BalanceManager
             $balance->setError(\sprintf("Class: %s - Message: %s", get_class($e), $e->getMessage()));
 
             $this->logger->error(\sprintf("Class: %s - Message: %s", get_class($e), $e->getMessage()));
-            throw new BalanceUpdateException(sprintf("Could not retrieve updated balance from provider: %s", $e->getMessage()));
+            throw new BalanceUpdateException(sprintf("Could not update balance from provider: %s", $e->getMessage()));
         }
 
         return $balance;
