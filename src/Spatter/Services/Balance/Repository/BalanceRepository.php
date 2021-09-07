@@ -63,7 +63,7 @@ class BalanceRepository implements BalanceRepositoryInterface {
 
 		$balance = $this->create();
 
-		$record = $this->getById($id);
+		$record = $this->repository->getById($id);
 
 		if($record === null) return $balance;
 		
@@ -83,8 +83,7 @@ class BalanceRepository implements BalanceRepositoryInterface {
 
 		$balance = $this->create();
 
-		$criteria = array('client_id' => $client->getId());
-		$record = $this->repository->fetch($criteria);
+		$record = $this->repository->getById($client->getId(), 'client_id');
 
 		if($record === null) return $balance;
 

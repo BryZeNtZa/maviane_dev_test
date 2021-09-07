@@ -16,27 +16,20 @@ use Maviance\Spatter\Services\Balance\BalanceManager;
 
 use PHPUnit\Framework\TestCase;
 
-class BalanceRepositoryTest extends TestCase
+class BalanceRepositoryOtherTest extends TestCase
 {
-	/*
-	 * @var BaseClientRepository
-	 */
-	private $clientRepository;
-	
-	/*
-	 * @var BalanceRepository
-	 */
-	private $balanceRepository;
-
     public function testRetrieve()
     {
 		$this->reInitBD();
 
+		$clientRepository = new BaseClientRepository();
+		$balanceRepository = new BalanceRepository();
+
 		// check we have exactly 2 clients in our dataset
-		$this->assertEquals(2, $this->clientRepository->count());
+		$this->assertEquals(2, $clientRepository->count());
 
 		// check we have exactly 1 balance entry in our dataset
-		$this->assertEquals(1, $this->balanceRepository->count());
+		$this->assertEquals(1, $balanceRepository->count());
 
 		// get client 1
 		$client1 = $clientRepository->get(1);
@@ -45,7 +38,7 @@ class BalanceRepositoryTest extends TestCase
 		$this->assertEquals(1000, $client1->getBalance());
 
 		// get client 1 balance
-		$client1Balance = $this->balanceRepository->get(1);
+		$client1Balance = $balanceRepository->get(1);
 		$this->assertNotNull($client1Balance);
 		$this->assertEquals($client1->getName(), $client1Balance->getClient()->getName());
 
@@ -63,11 +56,14 @@ class BalanceRepositoryTest extends TestCase
     {
 		$this->reInitBD();
 
+		$clientRepository = new BaseClientRepository();
+		$balanceRepository = new BalanceRepository();
+
 		// check we have exactly 1 balance entry in our dataset
-		$this->assertEquals(1, $this->balanceRepository->count());
+		$this->assertEquals(1, $balanceRepository->count());
 
 		// balance to be created
-		$balance = $this->balanceRepository->create();
+		$balance = $balanceRepository->create();
 
 		// client owning the balance
 		$client2 = $clientRepository->get(2);
@@ -78,10 +74,10 @@ class BalanceRepositoryTest extends TestCase
 		$balance->setClient($client2);
 
 		// perform the insertion
-		$this->balanceRepository->save($balance);
+		$balanceRepository->save($balance);
 
 		// check if the client's balance entry has been created and is OK
-		$this->assertEquals(2, $this->balanceRepository->count());
+		$this->assertEquals(2, $balanceRepository->count());
 		$this->assertEquals($client2->getBalance(), $balance->getAmount());
     }
 	
@@ -92,35 +88,27 @@ class BalanceRepositoryTest extends TestCase
     {
 		$this->reInitBD();
 
-		$this->assertEquals(1, $this->balanceRepository->count());
+		$balanceRepository = new BalanceRepository();
+		$this->assertEquals(1, $balanceRepository->count());
 
 		// balance to be updated
-		$balance = $this->balanceRepository->get(1);
+		$balance = $balanceRepository->get(1);
 		$this->assertEquals(1000, $balance->getAmount());
 
 		$balance->setAmount(2000);
 
 		// perform the update
-		$this->balanceRepository->save($balance);
+		$balanceRepository->save($balance);
 
 		// re-get the balance and check if it has been updated
-		$balance = $this->balanceRepository->get(1);
+		$balance = $balanceRepository->get(1);
 		$this->assertEquals(2000, $balance->getAmount());
     }
-
-	/*
-	 * Setup the tests
-	 */
-	protected function setUp() {
-		$this->clientRepository = new BaseClientRepository();
-		$this->balanceRepository = new BalanceRepository();
-	}
-
+	
 	/*
 	 * Reinitialize database as the tests goes on
 	 */
 	private function reInitBD() {
 		// TODO
 	}
-
 }

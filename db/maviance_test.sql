@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS `balance` (
 
 -- Listage des données de la table maviance_test.balance : ~0 rows (environ)
 /*!40000 ALTER TABLE `balance` DISABLE KEYS */;
+INSERT INTO `balance` (`id`, `client_id`, `amount`) VALUES
+	(1, 1, 500);
 /*!40000 ALTER TABLE `balance` ENABLE KEYS */;
 
 -- Listage de la structure de la table maviance_test. client

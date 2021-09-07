@@ -59,6 +59,8 @@ class Repository {
 		$fields = isset($filter['fields']) ? $filter['fields'] : '*';
 		$query =  'SELECT ' . $fields . ' FROM ' . $this->tablename;
 		$query .= $this->filter($filter);
+		
+		// echo $query;
 
 		$stm = $this->DB()->prepare($query) or throw new Exception($this->DB()->errorInfo());
 		$stm->execute();
@@ -86,8 +88,9 @@ class Repository {
      * @access  public
      * @since   Method available since Release 1.0.0
      */
-	public function getById(int $id): array {
-		return $this->fetch( array('id' => $id) );
+	public function getById(int $id, string $field='id'): array|null {
+		$wh = isset($field) ? $field.'='.$id : 'id='.$id;
+		return $this->fetch( array('where' => $wh) );
 	}
 
     /**
@@ -110,7 +113,7 @@ class Repository {
      * @access  public
      * @since   Method available since Release 1.0.0
      */
-    public function fetch(array $filter): array {
+    public function fetch(array $filter): array|null {
 		$records = $this->find($filter);
 		return count($records)!=0 ? $records[0] : null;
 	}
@@ -315,13 +318,13 @@ class Repository {
      * @since   Method available since Release 1.0.0
      */
 	private function filter(array $filter): string {
-		$filter = '';
-		$query .= isset($filter['where']) ? ' WHERE '.$filter['where'] : '';
-		$query .= isset($filter['group']) ? ' GROUP BY '.$filter['group'] : '';
-		$query .= isset($filter['order']) ? ' ORDER BY '.$filter['order'] : '';
-		$query .= isset($filter['limit']) ? ' LIMIT '.$filter['limit'] : '';
+		$filter_str = '';
+		$filter_str .= isset($filter['where']) ? ' WHERE '.$filter['where'] : '';
+		$filter_str .= isset($filter['group']) ? ' GROUP BY '.$filter['group'] : '';
+		$filter_str .= isset($filter['order']) ? ' ORDER BY '.$filter['order'] : '';
+		$filter_str .= isset($filter['limit']) ? ' LIMIT '.$filter['limit'] : '';
 
-		return $filter;
+		return $filter_str;
 	}
 
     /**
