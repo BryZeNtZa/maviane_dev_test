@@ -39,7 +39,7 @@ class BalanceManager
         $this->client = $client;
         $this->erm = $erm;
         $this->logger = new Logger(get_class());
-		// $this->logger->pushHandler(new StreamHandler(__DIR__ . '/logs/app.log', Logger::DEBUG));
+        // $this->logger->pushHandler(new StreamHandler(__DIR__ . '/logs/app.log', Logger::DEBUG));
     }
 
     /**
@@ -52,17 +52,17 @@ class BalanceManager
     {
 
         try {
-			// We'll find existing client balance and update it
-			// Or we'll create a new balance record for the client
-			$balance = $this->erm->findBalance($this->client);
+	    // We'll find existing client balance and update it
+            // Or we'll create a new balance record for the client
+            $balance = $this->erm->findBalance($this->client);
 
-			$balance->setClient($this->client);
-			$balance->setAmount($this->client->getBalance());
+            $balance->setClient($this->client);
+            $balance->setAmount($this->client->getBalance());
 
-			$this->erm->save($balance);
+            $this->erm->save($balance);
 
-			$balance->setSuccessful(true);
-			$this->logger->info("Success");
+            $balance->setSuccessful(true);
+            $this->logger->info("Success");
 			
         } catch (\Throwable $e) {
 			$balance = $this->erm->create();
