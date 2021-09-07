@@ -58,7 +58,7 @@ class Balance implements BalanceInterface {
      * @param int $id
      * @return void
      */
-    public function setId(string $id): void {
+    public function setId(int $id): void {
 		$this->id = $id;
 	}
 

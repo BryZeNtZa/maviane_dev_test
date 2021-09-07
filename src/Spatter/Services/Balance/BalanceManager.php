@@ -61,8 +61,8 @@ class BalanceManager
 
 			$this->erm->save($balance);
 
-            $balance->setSuccessful(true);
-            $this->logger->info("Success");
+			$balance->setSuccessful(true);
+			$this->logger->info("Success");
 			
         } catch (\Throwable $e) {
 			$balance = $this->erm->create();

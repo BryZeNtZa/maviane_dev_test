@@ -3,7 +3,9 @@
 namespace Maviance\Spatter\Services\Balance\Repository;
 
 use Maviance\Core\Repository\Repository;
-use Maviance\Spatter\Services\Balance\Model\BalanceModel;
+use Maviance\Spatter\Services\Balance\Model\Balance;
+use Maviance\Spatter\Clients\BaseClient;
+use Maviance\Spatter\Clients\Repository\BaseClientRepository;
 
 /**
  * Other RepositoryInterface implementation for the Balance Model
@@ -16,23 +18,52 @@ use Maviance\Spatter\Services\Balance\Model\BalanceModel;
  */
 interface BalanceRepositoryOther extends Repository implements BalanceRepositoryInterface {
 
+    /**
+     * Client Repository
+     *
+     * @var BaseClientRepository $clientRepository
+     */
+	private $clientRepository;
+
 	public function __construct() {
 		parent::__construct('balance');
+		$this->clientRepository = new BaseClientRepository();
 	}
 
 	/**
-	 * @return BalanceModel
+	 * @return Balance
 	 */
-    public function create(): BalanceModel {
-		return new BalanceModel();
+    public function create(): Balance {
+		$balance = new Balance();
+		$balance->setClient( $this->clientRepository->create() );
+		return $balance;
 	}
 
 	/**
-	 * @param BalanceModel $balance
+	 * @param Balance $balance
 	 * @return void
 	 */
-    public function save(BalanceModel $balance): void {
+    public function save(Balance $balance): void {
 		$this->persist($this->getData($balance));
+	}
+
+	/**
+	 * @return Balance
+	 */
+    public function get(int $id): Balance {
+
+		$balance = $this->create();
+
+		$record = $this->getById($id);
+
+		if($record === null) return $balance;
+		
+		$balance->setId( intval($record['id']) );
+		$client = $this->clientRepository->get(intval($record['client_id']));
+		$balance->setClient($client);
+		$balance->setAmount( floatval($record['amount']) );
+
+		return $balance;
 	}
 
 	/**
@@ -44,7 +75,7 @@ interface BalanceRepositoryOther extends Repository implements BalanceRepository
 		$balance = $this->create();
 
 		$criteria = array('client_id' => $client->getId());
-		$record = $this->get($criteria);
+		$record = $this->fetch($criteria);
 
 		if($record === null) return $balance;
 
@@ -56,10 +87,10 @@ interface BalanceRepositoryOther extends Repository implements BalanceRepository
 	}
 
 	/**
-	 * @param BalanceModel $balance
+	 * @param Balance $balance
 	 * @return array
 	 */
-	private function getData(BalanceModel $balance): array {
+	private function getData(Balance $balance): array {
 		return array(
 			'id' => null,
 			'client_id' => $balance->getClient()->getId(),

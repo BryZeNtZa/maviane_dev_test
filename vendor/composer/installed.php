@@ -1,22 +1,22 @@
 <?php return array(
     'root' => array(
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
+        'pretty_version' => 'dev-master',
+        'version' => 'dev-master',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => NULL,
+        'reference' => '27c07a4cac1e6cc682814c996d20d375e8f529cc',
         'name' => 'maviance/maviance',
         'dev' => true,
     ),
     'versions' => array(
         'maviance/maviance' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
+            'pretty_version' => 'dev-master',
+            'version' => 'dev-master',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => NULL,
+            'reference' => '27c07a4cac1e6cc682814c996d20d375e8f529cc',
             'dev_requirement' => false,
         ),
         'monolog/monolog' => array(

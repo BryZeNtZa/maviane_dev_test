@@ -54,15 +54,11 @@ class Repository {
      * @access  public
      * @since   Method available since Release 1.0.0
      */
-    public function find(array $criteria): iterable {
+    public function find(array $filter): iterable {
 
-		$fields = isset($criteria['fields']) ? $criteria['fields'] : '*';
+		$fields = isset($filter['fields']) ? $filter['fields'] : '*';
 		$query =  'SELECT ' . $fields . ' FROM ' . $this->tablename;
-
-		$query .= isset($criteria['where']) ? ' WHERE '.$criteria['where'] : '';
-		$query .= isset($criteria['group']) ? ' GROUP BY '.$criteria['group'] : '';
-		$query .= isset($criteria['order']) ? ' ORDER BY '.$criteria['order'] : '';
-		$query .= isset($criteria['limit']) ? ' LIMIT '.$criteria['limit'] : '';
+		$query .= $this->filter($filter);
 
 		$stm = $this->DB()->prepare($query) or throw new Exception($this->DB()->errorInfo());
 		$stm->execute();
@@ -71,7 +67,7 @@ class Repository {
 	}
 
     /**
-     * Abstract method for getting model all records from database.
+     * Method for getting table all records from database.
      *
      *
      * @return array
@@ -79,29 +75,48 @@ class Repository {
      * @since   Method available since Release 1.0.0
      */
 	public function getAll(): iterable {
-		return $this->find(array('fields'=>'*'));
-	}
-
-	public function count(): int {
-		$criteria = array('fields' => 'COUNT(*) AS count');
-		return $this->find($criteria)[0]['count'];
+		return $this->find( array('fields' => '*') );
 	}
 
     /**
-     * Abstract method for getting one record from database based on criteria.
+     * Method for getting record based on its id.
+     *
+     * @param int $id
+     * @return array
+     * @access  public
+     * @since   Method available since Release 1.0.0
+     */
+	public function getById(int $id): array {
+		return $this->fetch( array('id' => $id) );
+	}
+
+    /**
+     * Method for counting table rows
+     *
+     * @return  int
+     * @access  public
+     * @since   Method available since Release 1.0.0
+     */
+	public function count(): int {
+		$filter = array('fields' => 'COUNT(*) AS count');
+		return (int) $this->find($filter)[0]['count'];
+	}
+
+    /**
+     * Method for getting one record from database based on filter.
      *
      *
      * @return array
      * @access  public
      * @since   Method available since Release 1.0.0
      */
-    public function get(array $criteria): array {
-		$records = $this->find($criteria);
+    public function fetch(array $filter): array {
+		$records = $this->find($filter);
 		return count($records)!=0 ? $records[0] : null;
 	}
 
     /**
-     * The insert method.
+     * Method inserting data in db
      * 
      * This method makes it easy to insert data into the database 
      * in a quick and easy way. The data set is retrieved from 
@@ -158,9 +173,9 @@ class Repository {
     }
 	
     /**
-     * The update method.
+     * Method for update data in db
      * 
-     * This method makes it easy to updated a previously persisted object
+     * This method makes it easy to update a previously persisted object
      * in a quick and easy way. The data set is retrieved from 
      * the model object as an associative array
      *
@@ -168,7 +183,7 @@ class Repository {
      * @access  public
      * @since   Method available since Release 1.0.0
      */
-    public function update(array $data): int {
+    public function update(array $data, array $criteria=null): int {
 
         if($this->tablename == null){
             throw new Exception('No model provided !');
@@ -205,7 +220,11 @@ class Repository {
 			}
 		}
 		
-		$query .= ' WHERE id='.$data['id']; 
+		if( !empty($data['id']) ) {
+			$query .= $this->predicate( array('id' => $data['id']) );
+		} else {
+			if( isset($criteria) ) $query .= $this->predicate($criteria);
+		}
 
 		return $this->DB()->exec( $query ) or throw new Exception($this->DB()->errorInfo());
     }
@@ -227,6 +246,85 @@ class Repository {
 	}
 
     /**
+     * Method for deleting data in db
+     * 
+     * This method makes it easy to delete a previously persisted object
+     * based on some criteria
+     *
+     * @param   array $criteria
+     * @return  integer The affected rows
+     * @access  public
+     * @since   Method available since Release 1.0.0
+     */
+	public function delete(array $criteria): int {
+		$query = 'DELETE FROM '. $this->tablename . $this->predicate($criteria);
+		return $this->DB()->exec($query) or throw new Exception($this->DB()->errorInfo());
+	}
+
+    /**
+     * Method for building query WHERE predicate
+     * based on an array of criteria
+     * 
+     * @param   array $criteria
+     * @return  string WHERE part of the query
+     * @access  private
+     * @since   Method available since Release 1.0.0
+     */
+	private function predicate(array $criteria): string {
+
+		if( count($criteria) === 0) return '';
+
+		$where = '';
+		foreach($criteria as $field=>$value){
+			$type = gettype($value);
+			switch($type) {
+				case 'integer':
+				case 'double':
+				case 'float':
+					$where .= ($where === '') 
+					? $field . ' = ' . $value 
+					: ' AND ' . $field . ' = ' . $value;
+				break;
+				case 'string':
+					$value = $this->protectString($value);
+					$where .= ($where === '') 
+					? $field . ' = "' . $value .'"' 
+					: ' AND ' . $field . ' = "' . $value . '"';
+				break;
+				case 'boolean':
+					$v = $value===true ? 1 : 0;
+					$where .= ($where === '') 
+					? $field . ' = ' . $v 
+					: ' AND ' . $field . ' = ' . $v;
+				break;
+				default:
+					throw new UnhandledDatatypeException($this->tablename, $field, $type);
+				break;
+			}
+		}
+
+		return ' WHERE '.$where;
+	}
+
+    /**
+     * Method for building filter part of the SELECT query
+     * 
+     * @param   array $filter
+     * @return  string filter part of the SELECT query
+     * @access  private
+     * @since   Method available since Release 1.0.0
+     */
+	private function filter(array $filter): string {
+		$filter = '';
+		$query .= isset($filter['where']) ? ' WHERE '.$filter['where'] : '';
+		$query .= isset($filter['group']) ? ' GROUP BY '.$filter['group'] : '';
+		$query .= isset($filter['order']) ? ' ORDER BY '.$filter['order'] : '';
+		$query .= isset($filter['limit']) ? ' LIMIT '.$filter['limit'] : '';
+
+		return $filter;
+	}
+
+    /**
      * The method return a PDO database connection.
      *
      * @return  PDO object
@@ -239,9 +337,9 @@ class Repository {
     }
 
     /**
-     * Utility method to prevent SQL injection and .
+     * Utility method to prevent SQL injection and quoting errors.
      *
-     * @return  PDO object
+     * @return  string
      * @access  public
      * @since   Method available since Release 1.0.0
      */	

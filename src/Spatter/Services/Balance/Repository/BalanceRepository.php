@@ -2,8 +2,9 @@
 
 namespace Maviance\Spatter\Services\Balance\Repository;
 
-use Maviance\Core\Repository\Repository;
 use Maviance\Spatter\Services\Balance\Model\Balance;
+use Maviance\Core\Repository\Repository;
+use Maviance\Spatter\Clients\Repository\BaseClientRepository;
 
 /**
  * Default Repository Implementation for the Balance Model.
@@ -16,18 +17,28 @@ class BalanceRepository implements BalanceRepositoryInterface {
     /**
      * Balance Repository
      *
-     * @var int $repository
+     * @var Repository $repository
      */
 	private $repository;
+	
+    /**
+     * Client Repository
+     *
+     * @var BaseClientRepository $clientRepository
+     */
+	private $clientRepository;
 
 	public function __construct() {
 		$this->repository = new Repository('balance');
+		$this->clientRepository = new BaseClientRepository();
 	}
 	/**
 	 * @return BalanceModel
 	 */
     public function create(): Balance {
-		return new Balance();
+		$balance = new Balance();
+		$balance->setClient( $this->clientRepository->create() );
+		return $balance;
 	}
 
 	/**
@@ -46,6 +57,25 @@ class BalanceRepository implements BalanceRepositoryInterface {
 	}
 
 	/**
+	 * @return Balance
+	 */
+    public function get(int $id): Balance {
+
+		$balance = $this->create();
+
+		$record = $this->getById($id);
+
+		if($record === null) return $balance;
+		
+		$balance->setId( intval($record['id']) );
+		$client = $this->clientRepository->get(intval($record['client_id']));
+		$balance->setClient($client);
+		$balance->setAmount( floatval($record['amount']) );
+
+		return $balance;
+	}
+
+	/**
 	 * @param BaseClient $client
 	 * @return Balance
 	 */
@@ -54,7 +84,7 @@ class BalanceRepository implements BalanceRepositoryInterface {
 		$balance = $this->create();
 
 		$criteria = array('client_id' => $client->getId());
-		$record = $this->repository->get($criteria);
+		$record = $this->repository->fetch($criteria);
 
 		if($record === null) return $balance;
 
